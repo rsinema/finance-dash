@@ -43,6 +43,29 @@ app.route("/api/agent", agentRouter);
 app.route("/api/backups", backupRouter);
 
 app.onError((err, c) => {
+  // Axios errors (e.g. from the Plaid SDK) carry the upstream response on err.response.
+  // Surface that body so client-side banners show the real cause instead of "Request failed
+  // with status code 400".
+  const ax = err as {
+    isAxiosError?: boolean;
+    response?: { status?: number; data?: { error_message?: string; error_code?: string; error_type?: string } };
+  };
+  if (ax.isAxiosError && ax.response) {
+    const data = ax.response.data ?? {};
+    // eslint-disable-next-line no-console
+    console.error(
+      `[error] upstream ${ax.response.status}: ${data.error_code ?? "?"} — ${data.error_message ?? "(no message)"}`,
+    );
+    return c.json(
+      {
+        error: data.error_message ?? err.message ?? "upstream_error",
+        error_code: data.error_code,
+        error_type: data.error_type,
+        upstream_status: ax.response.status,
+      },
+      (ax.response.status ?? 500) as 400 | 401 | 403 | 404 | 409 | 422 | 500,
+    );
+  }
   // eslint-disable-next-line no-console
   console.error("[error]", err);
   const status = (err as { status?: number }).status ?? 500;
