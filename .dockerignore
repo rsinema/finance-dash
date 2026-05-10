@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.git
+.gitignore
+data
+*.log
+.env
+.env.local
+web/dist
+.DS_Store
+README.md
+finance-tracker-build-plan.md

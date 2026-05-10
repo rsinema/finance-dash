@@ -1,0 +1,15 @@
+services:
+  finance:
+    build: .
+    image: finiance-dash:latest
+    container_name: finiance-dash
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8090}:${PORT:-8090}"
+    env_file:
+      - .env
+    environment:
+      DB_PATH: /data/finance.db
+      NODE_ENV: production
+    volumes:
+      - ./data:/data

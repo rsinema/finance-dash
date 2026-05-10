@@ -1,0 +1,21 @@
+{
+  "name": "finiance-dash",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '*' dev",
+    "dev:server": "bun --filter server dev",
+    "dev:web": "bun --filter web dev",
+    "build": "bun --filter web build",
+    "start": "bun --filter server start",
+    "migrate": "bun --filter server migrate",
+    "typecheck": "bun --filter '*' typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
