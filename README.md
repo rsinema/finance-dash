@@ -25,13 +25,38 @@ bun run dev                          # starts API on :8090 and Vite on :5173
 
 Open <http://localhost:5173> for the UI. Vite proxies `/api` → `:8090`.
 
-### 3. Run (Docker)
+### 3. Run (Docker, build from source)
 
 ```bash
 docker compose up -d --build
 ```
 
 UI + API on <http://localhost:8090>. SQLite lives in `./data/finance.db`.
+
+### 4. Run (Docker, pull prebuilt image)
+
+The fastest path to deploy on a fresh Linux box. No source code transfer needed.
+
+```bash
+mkdir -p ~/finiance-dash/data && cd ~/finiance-dash
+curl -O https://raw.githubusercontent.com/rsinema/finiance-dash/main/docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/rsinema/finiance-dash/main/.env.example
+mv .env.example .env
+nano .env   # fill in PLAID_*, MOONSHOT_API_KEY, ENCRYPTION_KEY, S3_*
+
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml logs -f --tail=50
+```
+
+To upgrade later when a new image is published:
+
+```bash
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+```
+
+The image is multi-arch (`linux/amd64`, `linux/arm64`) — Docker pulls the right variant automatically.
 
 ## Architecture
 

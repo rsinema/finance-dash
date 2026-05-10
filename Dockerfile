@@ -1,5 +1,7 @@
 ### Stage 1: build the React frontend ###
-FROM oven/bun:1.3-alpine AS web-builder
+# Pin to native build platform — Vite/esbuild crashes under QEMU emulation.
+# The dist output (JS/HTML/CSS) is portable, so this is safe for multi-arch images.
+FROM --platform=$BUILDPLATFORM oven/bun:1.3-alpine AS web-builder
 WORKDIR /app
 
 COPY package.json tsconfig.base.json ./

@@ -1,0 +1,28 @@
+# Production deploy: pull the prebuilt image instead of building from source.
+# Usage on the server:
+#   1. Place this file and a populated .env in the same directory.
+#   2. docker compose -f docker-compose.prod.yml pull
+#   3. docker compose -f docker-compose.prod.yml up -d
+#
+# To upgrade later: docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d
+
+services:
+  finance:
+    image: rsinema/finiance-dash:latest
+    container_name: finiance-dash
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8090}:${PORT:-8090}"
+    env_file:
+      - .env
+    environment:
+      DB_PATH: /data/finance.db
+      BACKUP_DIR: /data/backups
+      NODE_ENV: production
+    volumes:
+      - ./data:/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
