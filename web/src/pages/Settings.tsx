@@ -136,45 +136,16 @@ export function Settings() {
   async function reclassifyFailed() {
     setError(null);
     setReclassifying(true);
-    setReclassifyProgress({ current: 0, total: 0, classified: 0, failed: 0 });
+    setReclassifyProgress(null);
     try {
-      const resp = await api.reclassifyFailedStream();
-      if (!resp.body) throw new Error("no response stream");
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
-      let total = 0;
-      let classified = 0;
-      let failed = 0;
-      let current = 0;
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buf += decoder.decode(value, { stream: true });
-        let idx;
-        while ((idx = buf.indexOf("\n")) !== -1) {
-          const line = buf.slice(0, idx).trim();
-          buf = buf.slice(idx + 1);
-          if (!line) continue;
-          try {
-            const evt = JSON.parse(line);
-            if (evt.type === "start") {
-              total = evt.total;
-            } else if (evt.type === "progress") {
-              current = evt.index;
-              classified += 1;
-            } else if (evt.type === "error") {
-              failed += 1;
-            } else if (evt.type === "done") {
-              classified = evt.classified;
-              failed = evt.failed;
-            }
-            setReclassifyProgress({ current, total, classified, failed });
-          } catch {
-            /* ignore malformed line */
-          }
-        }
-      }
+      const res = await api.reclassifyFailed();
+      const total = res.classified + res.failed;
+      setReclassifyProgress({
+        current: total,
+        total,
+        classified: res.classified,
+        failed: res.failed,
+      });
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -238,25 +209,11 @@ export function Settings() {
           </div>
         )}
 
-        {reclassifyProgress && (reclassifying || reclassifyProgress.total > 0) && (
+        {reclassifyProgress && !reclassifying && (
           <div className="text-sm text-muted">
-            {reclassifying
-              ? `Reclassifying ${reclassifyProgress.current} / ${reclassifyProgress.total}…`
+            {reclassifyProgress.total === 0
+              ? "Nothing to reclassify — all transactions already have a confident classification."
               : `Done: ${reclassifyProgress.classified} classified, ${reclassifyProgress.failed} failed.`}
-            {reclassifyProgress.total > 0 && (
-              <div className="mt-1 h-1.5 bg-bg rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent/70 transition-all"
-                  style={{
-                    width: `${
-                      (Math.max(reclassifyProgress.current, reclassifyProgress.classified + reclassifyProgress.failed) /
-                        reclassifyProgress.total) *
-                      100
-                    }%`,
-                  }}
-                />
-              </div>
-            )}
           </div>
         )}
 

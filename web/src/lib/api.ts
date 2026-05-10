@@ -119,8 +119,8 @@ export const api = {
       { method: "POST" },
     ),
   syncStatus: () => request<{ items: SyncStatus[] }>("/sync/status"),
-  reclassifyFailedStream: () =>
-    fetch(`/api/sync/reclassify-failed`, { method: "POST" }),
+  reclassifyFailed: () =>
+    request<{ classified: number; failed: number }>("/sync/reclassify-failed", { method: "POST" }),
 
   // Transactions
   listTransactions: (params: {

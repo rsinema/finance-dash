@@ -1,16 +1,12 @@
 import { Hono } from "hono";
-import { stream } from "hono/streaming";
 import { lastSyncByItem } from "../db/queries";
-import { syncAllItems, syncItem, classifyUnclassifiedStreaming } from "../services/sync";
+import { syncAllItems, syncItem, classifyUnclassified } from "../services/sync";
 
 export const syncRouter = new Hono();
 
-syncRouter.post("/reclassify-failed", (c) => {
-  return stream(c, async (s) => {
-    await classifyUnclassifiedStreaming(2000, async (event) => {
-      await s.write(JSON.stringify(event) + "\n");
-    });
-  });
+syncRouter.post("/reclassify-failed", async (c) => {
+  const result = await classifyUnclassified(2000);
+  return c.json(result);
 });
 
 syncRouter.post("/", async (c) => {
