@@ -15,6 +15,10 @@ function parseLine(line: string): [string, string] | null {
   if (eq === -1) return null;
   const key = trimmed.slice(0, eq).trim();
   let value = trimmed.slice(eq + 1).trim();
+  // Value is just a comment — treat as empty. Catches `KEY=  # comment`.
+  if (value.startsWith("#")) {
+    return [key, ""];
+  }
   // Strip surrounding quotes if balanced.
   if (
     (value.startsWith('"') && value.endsWith('"')) ||
@@ -22,7 +26,7 @@ function parseLine(line: string): [string, string] | null {
   ) {
     value = value.slice(1, -1);
   }
-  // Strip inline comments after unquoted values.
+  // Strip inline comments after unquoted values (require space before #).
   else {
     const hashIdx = value.indexOf(" #");
     if (hashIdx !== -1) value = value.slice(0, hashIdx).trim();

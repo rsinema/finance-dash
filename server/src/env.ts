@@ -45,7 +45,16 @@ const EnvSchema = z.object({
   S3_BUCKET: z.string().default(""),
   S3_PREFIX: z.string().default("finance-dash/"),
   S3_REGION: z.string().default(""),
-  S3_ENDPOINT_URL: z.string().default(""),
+  S3_ENDPOINT_URL: z
+    .string()
+    .default("")
+    .transform((v) => {
+      // Defense in depth against env files where an inline `# comment` got captured
+      // as the value. An endpoint that starts with `#` is unambiguously a stray comment.
+      const t = v.trim();
+      if (!t || t.startsWith("#")) return "";
+      return t;
+    }),
   S3_FORCE_PATH_STYLE: z
     .string()
     .default("false")
