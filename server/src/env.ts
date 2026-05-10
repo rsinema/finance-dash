@@ -43,7 +43,7 @@ const EnvSchema = z.object({
     .transform((v) => v.toLowerCase() === "true"),
 
   S3_BUCKET: z.string().default(""),
-  S3_PREFIX: z.string().default("finiance-dash/"),
+  S3_PREFIX: z.string().default("finance-dash/"),
   S3_REGION: z.string().default(""),
   S3_ENDPOINT_URL: z.string().default(""),
   S3_FORCE_PATH_STYLE: z

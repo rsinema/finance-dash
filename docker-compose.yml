@@ -1,8 +1,8 @@
 services:
   finance:
     build: .
-    image: finiance-dash:latest
-    container_name: finiance-dash
+    image: finance-dash:latest
+    container_name: finance-dash
     restart: unless-stopped
     ports:
       - "${PORT:-8090}:${PORT:-8090}"

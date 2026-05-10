@@ -38,9 +38,9 @@ UI + API on <http://localhost:8090>. SQLite lives in `./data/finance.db`.
 The fastest path to deploy on a fresh Linux box. No source code transfer needed.
 
 ```bash
-mkdir -p ~/finiance-dash/data && cd ~/finiance-dash
-curl -O https://raw.githubusercontent.com/rsinema/finiance-dash/main/docker-compose.prod.yml
-curl -O https://raw.githubusercontent.com/rsinema/finiance-dash/main/.env.example
+mkdir -p ~/finance-dash/data && cd ~/finance-dash
+curl -O https://raw.githubusercontent.com/rsinema/finance-dash/main/docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/rsinema/finance-dash/main/.env.example
 mv .env.example .env
 nano .env   # fill in PLAID_*, MOONSHOT_API_KEY, ENCRYPTION_KEY, S3_*
 
@@ -113,7 +113,7 @@ S3-compatible providers (Cloudflare R2, MinIO, Backblaze B2 with S3 API): set `S
 
 #### IAM policy
 
-Create an IAM user dedicated to this app. Attach the following inline policy. Replace `YOUR-BUCKET` with your bucket name; if you change `S3_PREFIX` from the default, update `finiance-dash` in the resource ARNs and the `s3:prefix` condition to match.
+Create an IAM user dedicated to this app. Attach the following inline policy. Replace `YOUR-BUCKET` with your bucket name; if you change `S3_PREFIX` from the default, update `finance-dash` in the resource ARNs and the `s3:prefix` condition to match.
 
 ```json
 {
@@ -127,7 +127,7 @@ Create an IAM user dedicated to this app. Attach the following inline policy. Re
         "s3:GetObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::YOUR-BUCKET/finiance-dash/*"
+      "Resource": "arn:aws:s3:::YOUR-BUCKET/finance-dash/*"
     },
     {
       "Sid": "BackupList",
@@ -136,7 +136,7 @@ Create an IAM user dedicated to this app. Attach the following inline policy. Re
       "Resource": "arn:aws:s3:::YOUR-BUCKET",
       "Condition": {
         "StringLike": {
-          "s3:prefix": ["finiance-dash/*", "finiance-dash/"]
+          "s3:prefix": ["finance-dash/*", "finance-dash/"]
         }
       }
     }
@@ -179,7 +179,7 @@ S3 backup:
 bun run server/src/scripts/restore-from-s3.ts
 
 # Or download a specific key:
-bun run server/src/scripts/restore-from-s3.ts finiance-dash/finance-2026-05-09T04-30-00-000.db
+bun run server/src/scripts/restore-from-s3.ts finance-dash/finance-2026-05-09T04-30-00-000.db
 
 # Then follow the same swap-and-restart steps as a local restore.
 ```
