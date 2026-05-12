@@ -1,5 +1,6 @@
 import { mkdirSync, readdirSync, statSync, unlinkSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { env } from "../env";
 import { db } from "../db";
 import {
@@ -64,6 +65,39 @@ export async function backupNow(): Promise<BackupResult> {
   }
 
   return result;
+}
+
+export interface S3OnlyBackupResult {
+  key: string;
+  bytes: number;
+  pruned: number;
+}
+
+// VACUUM INTO a temp file, upload to S3, then delete the temp file.
+// Used by the "Back up to S3 now" button — useful when the user wants to push
+// a fresh snapshot off-host without consuming local backup-retention slots.
+export async function backupS3Only(): Promise<S3OnlyBackupResult> {
+  if (!isS3Configured()) {
+    throw new Error("S3 is not configured (S3_BUCKET is unset)");
+  }
+
+  const filename = `${BACKUP_PREFIX}${timestamp()}${BACKUP_SUFFIX}`;
+  const target = resolve(tmpdir(), filename);
+  const escaped = target.replace(/'/g, "''");
+  db().exec(`VACUUM INTO '${escaped}'`);
+
+  try {
+    const upload = await s3Upload(target);
+    const { pruned } = await pruneS3Backups(env.S3_RETAIN);
+    return { key: upload.key, bytes: upload.bytes, pruned };
+  } finally {
+    try {
+      unlinkSync(target);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn(`[backup] failed to remove temp snapshot ${target}:`, (err as Error).message);
+    }
+  }
 }
 
 function pruneOldBackups(): number {

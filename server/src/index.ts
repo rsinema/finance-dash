@@ -8,6 +8,7 @@ import { env } from "./env";
 import { runMigrations } from "./db/migrate";
 import { bearerAuth } from "./middleware/auth";
 import { healthRouter } from "./routes/health";
+import { versionRouter } from "./routes/version";
 import { plaidRouter } from "./routes/plaid";
 import { syncRouter } from "./routes/sync";
 import { transactionsRouter } from "./routes/transactions";
@@ -34,6 +35,7 @@ app.use(
 app.use("/api/*", bearerAuth);
 
 app.route("/api/health", healthRouter);
+app.route("/api/version", versionRouter);
 app.route("/api/plaid", plaidRouter);
 app.route("/api/sync", syncRouter);
 app.route("/api/transactions", transactionsRouter);

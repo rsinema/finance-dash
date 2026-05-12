@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { backupNow, listBackups } from "../services/backup";
+import { backupNow, backupS3Only, listBackups } from "../services/backup";
 import { isS3Configured, listS3Backups } from "../services/s3-backup";
 import { env } from "../env";
 
@@ -31,5 +31,13 @@ backupRouter.get("/", async (c) => {
 
 backupRouter.post("/", async (c) => {
   const result = await backupNow();
+  return c.json(result);
+});
+
+backupRouter.post("/s3", async (c) => {
+  if (!isS3Configured()) {
+    return c.json({ error: "S3 is not configured" }, 400);
+  }
+  const result = await backupS3Only();
   return c.json(result);
 });

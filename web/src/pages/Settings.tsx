@@ -41,6 +41,8 @@ export function Settings() {
   const [loadingLink, setLoadingLink] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
+  const [backingUpS3, setBackingUpS3] = useState(false);
+  const [s3BackupNotice, setS3BackupNotice] = useState<string | null>(null);
   const [reclassifying, setReclassifying] = useState(false);
   const [reclassifyProgress, setReclassifyProgress] = useState<{
     current: number;
@@ -130,6 +132,21 @@ export function Settings() {
       setError((e as Error).message);
     } finally {
       setBackingUp(false);
+    }
+  }
+
+  async function backupS3Now() {
+    setBackingUpS3(true);
+    setS3BackupNotice(null);
+    setError(null);
+    try {
+      const res = await api.createS3Backup();
+      setS3BackupNotice(`Uploaded ${res.key} (${fmtBytes(res.bytes)}); pruned ${res.pruned}.`);
+      await load();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBackingUpS3(false);
     }
   }
 
@@ -287,9 +304,17 @@ export function Settings() {
 
         {s3Info?.enabled && (
           <>
-            <div className="text-xs uppercase tracking-wide text-muted mb-2 mt-4">
-              S3 ({s3Info.bucket}/{s3Info.prefix})
+            <div className="flex items-center justify-between mb-2 mt-4">
+              <div className="text-xs uppercase tracking-wide text-muted">
+                S3 ({s3Info.bucket}/{s3Info.prefix})
+              </div>
+              <button className="btn" onClick={backupS3Now} disabled={backingUpS3}>
+                {backingUpS3 ? "Uploading…" : "Back up to S3 now"}
+              </button>
             </div>
+            {s3BackupNotice && (
+              <div className="text-xs text-muted mb-2">{s3BackupNotice}</div>
+            )}
             {s3Info.error ? (
               <div className="panel p-3 text-sm bg-red-500/10 border-red-500/30 text-red-300">
                 S3 listing failed: {s3Info.error}

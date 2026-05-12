@@ -95,6 +95,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   health: () => request<{ ok: boolean; db: boolean }>("/health"),
+  version: () => request<{ version: string }>("/version"),
 
   // Plaid
   plaidStatus: () => request<{ configured: boolean; env: string }>("/plaid/status"),
@@ -196,6 +197,8 @@ export const api = {
       pruned: number;
       s3?: { key: string; bytes: number; pruned: number; error?: string };
     }>("/backups", { method: "POST" }),
+  createS3Backup: () =>
+    request<{ key: string; bytes: number; pruned: number }>("/backups/s3", { method: "POST" }),
 
   // Agent (streaming) — returns ReadableStream of newline-delimited JSON events.
   askAgent: async (question: string): Promise<Response> =>
