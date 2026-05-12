@@ -6,7 +6,7 @@ import {
   GetObjectCommand,
   type StorageClass,
 } from "@aws-sdk/client-s3";
-import { createReadStream, statSync, createWriteStream } from "node:fs";
+import { readFileSync, createWriteStream } from "node:fs";
 import { basename } from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -51,8 +51,12 @@ export interface S3UploadResult {
 export async function uploadBackup(localPath: string): Promise<S3UploadResult> {
   const filename = basename(localPath);
   const key = s3Key(filename);
-  const bytes = statSync(localPath).size;
-  const body = createReadStream(localPath);
+  // Buffer body (not createReadStream) — Bun's node:fs streams can terminate
+  // before all bytes flush to the AWS SDK's HTTP handler, causing S3 to reject
+  // the request with IncompleteBody when the declared ContentLength isn't met.
+  // Loading into memory is fine for SQLite backups (single- to low-hundreds-of-MB).
+  const body = readFileSync(localPath);
+  const bytes = body.byteLength;
   const resp = await s3().send(
     new PutObjectCommand({
       Bucket: env.S3_BUCKET,
